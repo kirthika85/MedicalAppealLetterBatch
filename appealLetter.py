@@ -14,7 +14,11 @@ def extract_text_from_pdf(pdf_file):
     text = ""
     for page in reader.pages:
         text += page.extract_text()
-    return text
+    # Clean up text
+    text = re.sub(r'\s+', ' ', text)  # Replace all whitespace (including newlines) with a single space
+    text = re.sub(r'([A-Za-z])\s([A-Za-z])', r'\1\2', text)  # Join fragmented letters
+    text = text.replace("A m o u n t", "Amount").replace("P a t i e n t", "Patient")  # Fix known patterns
+    return text.strip()
 
 # Function to extract claims using regex
 def extract_claims(text, pattern):
