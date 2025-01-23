@@ -108,7 +108,7 @@ if eob_file and medical_file and denial_file:
         st.error("Denial letter extraction failed. Please check the file.")
 
     # Define claim patterns
-    claim_pattern = r"ClaimNumber:\s*(\d+)\s*Service:\s*(.*?)Amount(?:Billed|Allowed):\s*\$([\d,.]+).*?(?=ClaimNumber:|$)"
+    claim_pattern = r"ClaimDetailsClaimNumber:\s*(\d+)\s*Service:\s*(.*?)Amount(?:Billed|Allowed):\s*\$([\d,.]+).*?(?=ClaimNumber:|$)"
     denial_pattern = r"ClaimNumber:\s*(\d+).*?ReasonforDenial:\s*(.*?)(?=ClaimNumber:|\Z)"
 
     eob_text = preprocess_eob_text(eob_text)
