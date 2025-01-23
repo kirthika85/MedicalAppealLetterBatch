@@ -203,30 +203,38 @@ if eob_file and medical_file and denial_file:
         except Exception as e:
             st.error(f"Error processing claim {claim_number}: {e}")
 
-    # Results table
-    results_df = pd.DataFrame(results)
+    # Results display
     st.subheader("Claim Results")
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.subheader("Appeal Letters")
+        for claim_number, appeal_letter in appeal_letters.items():
+            st.write(f"**Claim {claim_number}**")
+            st.text_area(f"Appeal Letter Snippet (Claim {claim_number})", appeal_letter[:200] + "...", height=100)
+            appeal_file = BytesIO()
+            appeal_file.write(appeal_letter.encode("utf-8"))
+            appeal_file.seek(0)
+            st.download_button(
+                label=f"Download Appeal Letter for Claim {claim_number}",
+                data=appeal_file,
+                file_name=f"AppealLetter_{claim_number}.txt",
+                mime="text/plain",
+            )
+    
+    results_df = pd.DataFrame(results)
     st.dataframe(results_df)
 
-    # Download CSV
-    csv = results_df.to_csv(index=False)
-    st.download_button(
-        label="Download Results as CSV",
-        data=csv,
-        file_name="claim_results.csv",
-        mime="text/csv",
-    )
-
-    # Download appeal letters
-    for claim_number, appeal_letter in appeal_letters.items():
-        appeal_file = BytesIO()
-        appeal_file.write(appeal_letter.encode("utf-8"))
-        appeal_file.seek(0)
-        st.download_button(
-            label=f"Download Appeal Letter for Claim {claim_number}",
-            data=appeal_file,
-            file_name=f"AppealLetter_{claim_number}.txt",
-            mime="text/plain",
+    with col2:
+        st.subheader("Appeal Letter Status")
+        st.dataframe(results_df)
+    
+        csv = results_df.to_csv(index=False)
+            st.download_button(
+            label="Download Results as CSV",
+            data=csv,
+            file_name="claim_results.csv",
+            mime="text/csv",
         )
 else:
     st.error("Please upload all required files.")
