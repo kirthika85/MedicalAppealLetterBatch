@@ -5,7 +5,7 @@ from langchain.chains import ConversationChain
 from langchain.memory import ConversationBufferMemory
 import pandas as pd
 import re
-from datetime import datetime, timedelta
+from datetime import datetime
 from io import BytesIO
 
 # Function to extract text from uploaded PDFs
@@ -25,14 +25,9 @@ def extract_claims(text, pattern):
 def extract_patient_info(medical_text):
     name = re.search(r"Patient Name:\s*(.*)", medical_text)
     address = re.search(r"Address:\s*(.*)", medical_text)
-    phone = re.search(r"Phone Number:\s*(.*)", medical_text)
-    email = re.search(r"Email:\s*(.*)", medical_text)
-
     return {
         "name": name.group(1) if name else "[Patient Name]",
-        "address": address.group(1) if address else "[Patient Address]",
-        "phone": phone.group(1) if phone else "[Patient Phone]",
-        "email": email.group(1) if email else "[Patient Email]"
+        "address": address.group(1) if address else "[Patient Address]"
     }
 
 # Initialize GPT-4 Chat Model with LangChain
@@ -58,16 +53,13 @@ def is_claim_within_timeframe(claim_date, denial_date, max_days=30):
     except ValueError:
         return False
 
-# Display logo at the top-left corner
+# Streamlit setup
 st.set_page_config(page_title="Medical Claim Appeal Generator", page_icon="🩺", layout="wide")
 col1, col2 = st.columns([1, 6])
 with col1:
     st.image("Mool.png", width=150)
 with col2:
-    st.markdown(
-        "<h1 style='margin-top: 10px;'>Medical Claim Appeal Generator</h1>",
-        unsafe_allow_html=True
-    )
+    st.markdown("<h1 style='margin-top: 10px;'>Medical Claim Appeal Generator</h1>", unsafe_allow_html=True)
 
 st.write("Generate medical claim appeal letters for each claim in the provided documents.")
 current_date = datetime.now().strftime("%A, %B %d, %Y")
@@ -91,15 +83,9 @@ if eob_file and medical_file and denial_file:
     medical_text = extract_text_from_pdf(medical_file)
     denial_text = extract_text_from_pdf(denial_file)
 
-    st.text_area("EOB Extracted Text", eob_text)
-    st.text_area("Medical Records Extracted Text", medical_text)
-    st.text_area("Denial Letter Extracted Text", denial_text)
-
-
-    # Extract claims using predefined patterns (modify as needed for accuracy)
+    # Extract claims using patterns
     claim_pattern = r"Claim Number:\s*(\d+).*?Service Description:\s*(.*?)\nAmount Billed:\s*\$([\d,.]+).*?Claim Date:\s*(\d{4}-\d{2}-\d{2})"
     denial_pattern = r"Claim Number:\s*(\d+).*?Reason for Denial:\s*(.*?)(?=\nClaim Number:|\n$)"
-
     
     eob_claims = extract_claims(eob_text, claim_pattern)
     denial_claims = extract_claims(denial_text, denial_pattern)
@@ -107,120 +93,95 @@ if eob_file and medical_file and denial_file:
     st.write("EOB Claims Extracted:", eob_claims)
     st.write("Denial Claims Extracted:", denial_claims)
 
-    
-    st.write("Matching EOB claims with Denial claims...")
-    matched_claims = []
-    for eob_claim in eob_claims:
-        service_desc, billed_amt, _, _, _ = eob_claim
-        denial_match = next(
-            (d for d in denial_claims if d[0] == service_desc and d[1] == billed_amt), None
-        )
+    # Match claims and process appeals
+    results = []
+    appeal_letters = {}
+    processed_claims = set()
+
+    for claim_number, service_desc, billed_amt, claim_date in eob_claims:
+        if claim_number in processed_claims:
+            continue
+
+        denial_match = next((d for d in denial_claims if d[0] == claim_number), None)
 
         if denial_match:
-            reason_for_denial = denial_match[2]
-            st.write(f"Match found for service: {service_desc}, amount billed: {billed_amt}. Reason for denial: {reason_for_denial}")
-            matched_claims.append((eob_claim, denial_match))
-        else:
-            st.write(f"No matching denial found for service: {service_desc}, amount billed: {billed_amt}")
+            reason_for_denial = denial_match[1]
+            if is_claim_within_timeframe(claim_date, current_date):
+                # Appeal Prompt
+                appeal_prompt = f"""
+                Validate the claim based on these inputs:
+                1. Explanation of Benefits (EOB): Service - {service_desc}, Amount Billed - {billed_amt}
+                2. Medical Records: {medical_text}
+                3. Denial Letter: {reason_for_denial}
 
-    
-    if not api_key:
-        st.error("Please enter your OpenAI API Key in the sidebar.")
-    else:
-        st.write("Initializing Mool AI agent...")
-        agent = initialize_agent(api_key)
+                If valid, generate a professional appeal letter:
+                - Use a polite and professional tone.
+                - Clearly state the reason for the appeal.
+                - Explain the medical necessity of the procedures.
+                - Suggest why the denial reason should be reconsidered.
 
-        if agent is None:
-            st.error("Failed to initialize the AI agent. Please check your OpenAI API key.")
-        else:
-            patient_info = extract_patient_info(medical_text)
-            results = []
-            appeal_letters = {}
+                Patient Name: {extract_patient_info(medical_text)['name']}
+                Current Date: {current_date}
+                """
 
-            st.write("Processing claims...")
-            for claim_number, claim_date, claim_content in eob_claims:
-                # Check if the claim exists in the denial claims
-                denial_match = next((d for d in denial_claims if d[0] == claim_number), None)
-
-                if denial_match:
-                    denial_date, denial_content = denial_match[1], denial_match[2]
-
-                    # Validate the claim date against the denial date
-                    if not is_claim_within_timeframe(claim_date, denial_date):
-                        results.append({
-                            "Customer Name": patient_info['name'],
-                            "Claim Number": claim_number,
-                            "Appeal Letter Generation": "N",
-                            "Reason": "Claim outside appealable timeframe"
-                        })
-                        continue
-
-                    appeal_prompt = f"""
-                    Validate the claim based on these inputs:
-                    1. Explanation of Benefits (EOB): {claim_content}
-                    2. Medical Records: {medical_text}
-                    3. Denial Letter: {denial_content}
-
-                    If valid, generate a professional appeal letter:
-                    - Use a polite and professional tone.
-                    - Clearly state the reason for the appeal.
-                    - Explain the medical necessity of the procedures.
-                    - Suggest why the denial reason should be reconsidered.
-
-                    Please use the following patient details at the beginning of the letter:
-                    Patient Name: {patient_info['name']}
-                    Start the letter with the patient's full name and address, followed by the current date ({current_date}).
-                    """
-
-                    try:
+                try:
+                    agent = initialize_agent(api_key)
+                    if agent:
                         appeal_letter = agent.run(appeal_prompt)
                         appeal_letters[claim_number] = appeal_letter
                         results.append({
-                            "Customer Name": patient_info['name'],
                             "Claim Number": claim_number,
-                            "Appeal Letter Generation": "Y",
+                            "Patient Name": extract_patient_info(medical_text)['name'],
+                            "Appeal Letter Sent": "Yes",
                             "Reason": ""
                         })
-                    except Exception as e:
-                        results.append({
-                            "Customer Name": patient_info['name'],
-                            "Claim Number": claim_number,
-                            "Appeal Letter Generation": "N",
-                            "Reason": f"Error generating appeal letter: {e}"
-                        })
-                else:
+                except Exception as e:
                     results.append({
-                        "Customer Name": patient_info['name'],
                         "Claim Number": claim_number,
-                        "Appeal Letter Generation": "N",
-                        "Reason": "Claim not found in Denial Letter"
+                        "Patient Name": extract_patient_info(medical_text)['name'],
+                        "Appeal Letter Sent": "No",
+                        "Reason": f"Error: {str(e)}"
                     })
+            else:
+                results.append({
+                    "Claim Number": claim_number,
+                    "Patient Name": extract_patient_info(medical_text)['name'],
+                    "Appeal Letter Sent": "No",
+                    "Reason": "Claim outside appealable timeframe"
+                })
+        else:
+            results.append({
+                "Claim Number": claim_number,
+                "Patient Name": extract_patient_info(medical_text)['name'],
+                "Appeal Letter Sent": "No",
+                "Reason": "No Matching Denial Found"
+            })
+        processed_claims.add(claim_number)
 
-            # Display results in a table
-            st.subheader("Claim Processing Results")
-            results_df = pd.DataFrame(results)
-            st.dataframe(results_df)
+    # Display Results as a Table
+    st.subheader("Claim Processing Results")
+    results_df = pd.DataFrame(results)
+    st.dataframe(results_df)
 
-            # Provide option to download results
-            csv = results_df.to_csv(index=False)
-            st.download_button(
-                label="Download Results as CSV",
-                data=csv,
-                file_name="claim_processing_results.csv",
-                mime="text/csv"
-            )
+    # Download Results as CSV
+    csv = results_df.to_csv(index=False)
+    st.download_button(
+        label="Download Results as CSV",
+        data=csv,
+        file_name="claim_processing_results.csv",
+        mime="text/csv"
+    )
 
-            # Provide appeal letters for download
-            for claim_number, appeal_letter in appeal_letters.items():
-                appeal_file = BytesIO()
-                appeal_file.write(appeal_letter.encode("utf-8"))
-                appeal_file.seek(0)
-
-                st.download_button(
-                    label=f"Download Appeal Letter for Claim {claim_number}",
-                    data=appeal_file,
-                    file_name=f"appeal_letter_claim_{claim_number}.txt",
-                    mime="text/plain"
-                )
+    # Download Appeal Letters
+    for claim_number, appeal_letter in appeal_letters.items():
+        appeal_file = BytesIO()
+        appeal_file.write(appeal_letter.encode("utf-8"))
+        appeal_file.seek(0)
+        st.download_button(
+            label=f"Download Appeal Letter for Claim {claim_number}",
+            data=appeal_file,
+            file_name=f"appeal_letter_claim_{claim_number}.txt",
+            mime="text/plain"
+        )
 else:
     st.error("Please upload all required documents.")
