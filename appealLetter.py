@@ -16,9 +16,10 @@ def extract_text_from_pdf(pdf_file):
         for page in reader.pages:
             text += page.extract_text()
         # Clean up text
-        text = re.sub(r'\s+', ' ', text)  # Replace all whitespace (including newlines) with a single space
-        text = re.sub(r'([A-Za-z])\s([A-Za-z])', r'\1\2', text)  # Join fragmented letters
-        text = text.replace("A m o u n t", "Amount").replace("P a t i e n t", "Patient")  # Fix known patterns
+        text = re.sub(r'\s+', ' ', text)  # Replace all whitespace with a single space
+        text = re.sub(r'([a-z])([A-Z])', r'\1 \2', text)  # Add space between lowercase and uppercase
+        text = re.sub(r'([a-zA-Z])(\d)', r'\1 \2', text)  # Add space between letters and numbers
+        text = re.sub(r'(\d)([a-zA-Z])', r'\1 \2', text)  # Add space between numbers and letters
         return text.strip()
     except Exception as e:
         st.error(f"Error extracting text from PDF: {e}")
@@ -58,10 +59,12 @@ def is_service_not_covered(service_desc, non_covered_services):
 
 def preprocess_eob_text(text):
     # Add spaces where missing
-    text = re.sub(r"([a-z])([A-Z])", r"\1 \2", text)  # Add space between lowercase and uppercase letters
-    text = re.sub(r"(\d)([A-Z])", r"\1 \2", text)  # Add space between digits and letters
+    text = re.sub(r"([a-z])([A-Z])", r"\1 \2", text)  # Add space between lowercase and uppercase
+    text = re.sub(r"(\d)([A-Z])", r"\1 \2", text)  # Add space between digits and uppercase
     text = re.sub(r"([A-Za-z])(\d)", r"\1 \2", text)  # Add space between letters and digits
     text = re.sub(r"([A-Za-z]):", r"\1: ", text)  # Add space after colons
+    text = re.sub(r"(\w)(\w{20,})", r"\1 \2", text)  # Split long words
+    text = re.sub(r"([a-z]{3,})([A-Z])", r"\1 \2", text)  # Split CamelCase
     return text.strip()
 
 
@@ -107,12 +110,13 @@ if eob_file and medical_file and denial_file:
     if not denial_text:
         st.error("Denial letter extraction failed. Please check the file.")
 
+    eob_text = preprocess_eob_text(eob_text)
+    
     # Define claim patterns
     claim_pattern = r"Claim(?:\s+)?Number:\s*(\d+).*?Service:\s*(.*?)Amount\s*Billed:\s*\$\s*([\d,.]+)"
     denial_pattern = r"ClaimNumber:\s*(\d+).*?ReasonforDenial:\s*(.*?)(?=ClaimNumber:|\Z)"
 
-    eob_text = preprocess_eob_text(eob_text)
-
+    
     # Extract claims
     eob_claims = extract_claims(eob_text, claim_pattern)
     denial_claims = extract_claims(denial_text, denial_pattern)
