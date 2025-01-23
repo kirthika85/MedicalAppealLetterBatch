@@ -204,29 +204,30 @@ if eob_file and medical_file and denial_file:
             st.error(f"Error processing claim {claim_number}: {e}")
 
     # Results display
-    st.subheader("Claim Results")
-    col1, col2 = st.columns(2)
+    tab1, tab2 = st.tabs(["Appeal Letters", "Claim Results"])
 
-    with col1:
+    with tab1:
         st.subheader("Appeal Letters")
-        for claim_number, appeal_letter in appeal_letters.items():
-            st.write(f"**Claim {claim_number}**")
-            st.text_area(f"Appeal Letter Snippet (Claim {claim_number})", appeal_letter[:200] + "...", height=100)
-            appeal_file = BytesIO()
-            appeal_file.write(appeal_letter.encode("utf-8"))
-            appeal_file.seek(0)
-            st.download_button(
-                label=f"Download Appeal Letter for Claim {claim_number}",
-                data=appeal_file,
-                file_name=f"AppealLetter_{claim_number}.txt",
-                mime="text/plain",
-            )
+        col1, col2 = st.columns(2)
+    
+        for i, (claim_number, appeal_letter) in enumerate(appeal_letters.items()):
+            with col1 if i % 2 == 0 else col2:
+                st.subheader(f"Claim {claim_number}")
+                st.text_area(f"Appeal Letter Snippet", appeal_letter[:200] + "...", height=100)
+                appeal_file = BytesIO()
+                appeal_file.write(appeal_letter.encode("utf-8"))
+                appeal_file.seek(0)
+                st.download_button(
+                    label=f"Download Appeal Letter",
+                    data=appeal_file,
+                    file_name=f"AppealLetter_{claim_number}.txt",
+                    mime="text/plain",
+                )
     
     results_df = pd.DataFrame(results)
-    st.dataframe(results_df)
-
-    with col2:
-        st.subheader("Appeal Letter Status")
+    
+    with tab2:
+        st.header("Claim Results")
         st.dataframe(results_df)
     
         csv = results_df.to_csv(index=False)
