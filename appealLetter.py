@@ -106,6 +106,23 @@ if eob_file and medical_file and denial_file:
     st.write("EOB Claims Extracted:", eob_claims)
     st.write("Denial Claims Extracted:", denial_claims)
 
+    
+    st.write("Matching EOB claims with Denial claims...")
+    matched_claims = []
+    for eob_claim in eob_claims:
+        service_desc, billed_amt, _, _, _ = eob_claim
+        denial_match = next(
+            (d for d in denial_claims if d[0] == service_desc and d[1] == billed_amt), None
+        )
+
+        if denial_match:
+            reason_for_denial = denial_match[2]
+            st.write(f"Match found for service: {service_desc}, amount billed: {billed_amt}. Reason for denial: {reason_for_denial}")
+            matched_claims.append((eob_claim, denial_match))
+        else:
+            st.write(f"No matching denial found for service: {service_desc}, amount billed: {billed_amt}")
+
+    
     if not api_key:
         st.error("Please enter your OpenAI API Key in the sidebar.")
     else:
