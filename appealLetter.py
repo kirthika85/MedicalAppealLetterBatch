@@ -83,6 +83,12 @@ if eob_file and medical_file and denial_file:
     medical_text = extract_text_from_pdf(medical_file)
     denial_text = extract_text_from_pdf(denial_file)
 
+    st.write("Extracted EOB Text:")
+    st.write(eob_text)
+
+    st.write("Extracted Denial Letter Text:")
+    st.write(denial_text)
+    
     # Extract claims using patterns
     claim_pattern = r"Claim Number:\s*(\d+).*?Service Description:\s*(.*?)\nAmount Billed:\s*\$([\d,.]+).*?Claim Date:\s*(\d{4}-\d{2}-\d{2})"
     denial_pattern = r"Claim Number:\s*(\d+).*?Reason for Denial:\s*(.*?)(?=\nClaim Number:|\n$)"
