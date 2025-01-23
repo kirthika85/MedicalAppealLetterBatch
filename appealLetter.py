@@ -114,9 +114,10 @@ if eob_file and medical_file and denial_file:
     denial_text = preprocess_eob_text(denial_text)
     
     # Define claim patterns
-    claim_pattern = r"Claim(?:\s+)?Number:\s*(\d+).*?Service:\s*(.*?)Amount\s*Billed:\s*\$\s*([\d,.]+)"
-    #denial_pattern = r"Claim Number:\s*(\d+).*?ReasonforDenial:\s*(.*?)(?=ClaimNumber:|\Z)"
-    denial_pattern = r"(?:Claim|Claim\s+Number):\s*(\d+).*?(?:Reason\s+for\s+Denial|Denial\s+Reason):\s*(.*?)(?=(?:Claim|Claim\s+Number):|$)"
+    #claim_pattern = r"Claim(?:\s+)?Number:\s*(\d+).*?Service:\s*(.*?)Amount\s*Billed:\s*\$\s*([\d,.]+)"
+    claim_pattern = r"Claim(?:\s+)?Number:\s*(\d+).*?Service:\s*(.*?)Amount\s*Billed:\s*\$\s*([\d,.]+).*?Claim\s*Date:\s*(\d{1,2}/\d{1,2}/\d{4})"
+    #denial_pattern = r"(?:Claim|Claim\s+Number):\s*(\d+).*?(?:Reason\s+for\s+Denial|Denial\s+Reason):\s*(.*?)(?=(?:Claim|Claim\s+Number):|$)"
+    denial_pattern = r"(?:Claim|Claim\s+Number):\s*(\d+).*?Claim\s*Date:\s*(\d{1,2}/\d{1,2}/\d{4}).*?(?:Reason\s+for\s+Denial|Denial\s+Reason):\s*(.*?)(?=(?:Claim|Claim\s+Number):|$)"
 
     
     # Extract claims
