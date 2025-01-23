@@ -114,7 +114,6 @@ if eob_file and medical_file and denial_file:
     denial_text = preprocess_eob_text(denial_text)
     
     # Define claim patterns
-    #claim_pattern = r"Claim(?:\s+)?Number:\s*(\d+).*?Service:\s*(.*?)Amount\s*Billed:\s*\$\s*([\d,.]+)"
     claim_pattern = r"Claim Number:\s*(\d+)\s*Claim Date:\s*(\d{2}/\d{2}/\d{4})\s*Service:\s*(.*?)\s*Amount Billed:\s*\$\s*([\d,.]+)"
     #denial_pattern = r"(?:Claim|Claim\s+Number):\s*(\d+).*?(?:Reason\s+for\s+Denial|Denial\s+Reason):\s*(.*?)(?=(?:Claim|Claim\s+Number):|$)"
     denial_pattern = r"(?:Claim|Claim\s+Number):\s*(\d+).*?Claim\s*Date:\s*(\d{1,2}/\d{1,2}/\d{4}).*?(?:Reason\s+for\s+Denial|Denial\s+Reason):\s*(.*?)(?=(?:Claim|Claim\s+Number):|$)"
@@ -204,7 +203,7 @@ if eob_file and medical_file and denial_file:
             st.error(f"Error processing claim {claim_number}: {e}")
 
     # Results display
-    tab1, tab2 = st.tabs(["Appeal Letters", "Claim Results"])
+    tab1, tab2 = st.tabs(["Appeal Letters", "Claim Appeal Status"])
 
     with tab1:
         st.subheader("Appeal Letters")
