@@ -57,13 +57,18 @@ def is_service_not_covered(service_desc, non_covered_services):
     return any(nc.lower() in service_desc.lower() for nc in non_covered_services)
 
 # Streamlit setup
-st.set_page_config(page_title="Medical Claim Appeal Generator", page_icon="\ud83e\udfe0", layout="wide")
+st.set_page_config(page_title="Medical Claim Appeal Generator", page_icon="🩺", layout="wide")
+#st.image("Mool.png", width=100)
 
 col1, col2 = st.columns([1, 6])
 with col1:
     st.image("Mool.png", width=150)
+
 with col2:
-    st.markdown("<h1 style='margin-top: 10px;'>Medical Claim Appeal Generator</h1>", unsafe_allow_html=True)
+    st.markdown(
+        "<h1 style='margin-top: 10px;'>Medical Claim Appeal Generator</h1>",
+        unsafe_allow_html=True
+    )
 
 st.write("Generate medical claim appeal letters for each claim in the provided documents.")
 current_date = datetime.now().strftime("%A, %B %d, %Y")
