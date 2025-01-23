@@ -91,12 +91,20 @@ if eob_file and medical_file and denial_file:
     medical_text = extract_text_from_pdf(medical_file)
     denial_text = extract_text_from_pdf(denial_file)
 
+    st.text_area("EOB Extracted Text", eob_text)
+    st.text_area("Medical Records Extracted Text", medical_text)
+    st.text_area("Denial Letter Extracted Text", denial_text)
+
+
     # Extract claims using predefined patterns (modify as needed for accuracy)
     claim_pattern = r"Claim Number:\s*(\d+)\s*Date of Claim:\s*(\d{4}-\d{2}-\d{2})\s*(.*?)\n(?=Claim Number:|$)"
     denial_pattern = r"Claim Number:\s*(\d+)\s*Denial Date:\s*(\d{4}-\d{2}-\d{2})\s*(.*?)\n(?=Claim Number:|$)"
     
     eob_claims = extract_claims(eob_text, claim_pattern)
     denial_claims = extract_claims(denial_text, denial_pattern)
+
+    st.write("EOB Claims Extracted:", eob_claims)
+    st.write("Denial Claims Extracted:", denial_claims)
 
     if not api_key:
         st.error("Please enter your OpenAI API Key in the sidebar.")
