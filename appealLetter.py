@@ -91,7 +91,9 @@ if eob_file and medical_file and denial_file:
     denial_pattern = r"Claim Number:\s*(\d+).*?Reason for Denial:\s*(.*?)(?=\nClaim Number:|\n$)"
 
     eob_claims = extract_claims(eob_text, claim_pattern)
+    st.write(eob_claims)
     denial_claims = extract_claims(denial_text, denial_pattern)
+    st.write(denial_claims)
 
     # Define non-covered services
     non_covered_services = ["cosmetic surgery", "experimental treatment", "unnecessary procedure"]
