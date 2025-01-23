@@ -111,6 +111,7 @@ if eob_file and medical_file and denial_file:
         st.error("Denial letter extraction failed. Please check the file.")
 
     eob_text = preprocess_eob_text(eob_text)
+    denial_text = preprocess_eob_text(denial_text)
     
     # Define claim patterns
     claim_pattern = r"Claim(?:\s+)?Number:\s*(\d+).*?Service:\s*(.*?)Amount\s*Billed:\s*\$\s*([\d,.]+)"
