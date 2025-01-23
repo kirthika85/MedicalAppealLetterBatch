@@ -115,7 +115,7 @@ if eob_file and medical_file and denial_file:
     
     # Define claim patterns
     #claim_pattern = r"Claim(?:\s+)?Number:\s*(\d+).*?Service:\s*(.*?)Amount\s*Billed:\s*\$\s*([\d,.]+)"
-    claim_pattern = r"Claim(?:\s+)?Number:\s*(\d+).*?Service:\s*(.*?)Amount\s*Billed:\s*\$\s*([\d,.]+).*?Claim\s*Date:\s*(\d{1,2}/\d{1,2}/\d{4})"
+    claim_pattern = r"Claim Number:\s*(\d+)\s*Claim Date:\s*(\d{2}/\d{2}/\d{4})\s*Service:\s*(.*?)\s*Amount Billed:\s*\$\s*([\d,.]+)"
     #denial_pattern = r"(?:Claim|Claim\s+Number):\s*(\d+).*?(?:Reason\s+for\s+Denial|Denial\s+Reason):\s*(.*?)(?=(?:Claim|Claim\s+Number):|$)"
     denial_pattern = r"(?:Claim|Claim\s+Number):\s*(\d+).*?Claim\s*Date:\s*(\d{1,2}/\d{1,2}/\d{4}).*?(?:Reason\s+for\s+Denial|Denial\s+Reason):\s*(.*?)(?=(?:Claim|Claim\s+Number):|$)"
 
