@@ -97,8 +97,9 @@ if eob_file and medical_file and denial_file:
 
 
     # Extract claims using predefined patterns (modify as needed for accuracy)
-    claim_pattern = r"Service Description:\s*(.*?)\nAmount Billed:\s*\$([\d,.]+)\nAmount Allowed:\s*\$([\d,.]+)\nInsurance Paid:\s*\$([\d,.]+)\nPatient Responsibility:\s*\$([\d,.]+)"
-    denial_pattern = r"Service Description:\s*(.*?)\nAmount Billed:\s*\$([\d,.]+)\nReason for Denial:\s*(.*?)(?=\n- Service Description:|\n$)"
+    claim_pattern = r"Claim Number:\s*(\d+).*?Service Description:\s*(.*?)\nAmount Billed:\s*\$([\d,.]+).*?Claim Date:\s*(\d{4}-\d{2}-\d{2})"
+    denial_pattern = r"Claim Number:\s*(\d+).*?Reason for Denial:\s*(.*?)(?=\nClaim Number:|\n$)"
+
     
     eob_claims = extract_claims(eob_text, claim_pattern)
     denial_claims = extract_claims(denial_text, denial_pattern)
