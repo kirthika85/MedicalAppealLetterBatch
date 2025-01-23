@@ -10,15 +10,19 @@ from langchain.memory import ConversationBufferMemory
 
 # Function to extract text from PDFs
 def extract_text_from_pdf(pdf_file):
-    reader = PdfReader(pdf_file)
-    text = ""
-    for page in reader.pages:
-        text += page.extract_text()
-    # Clean up text
-    text = re.sub(r'\s+', ' ', text)  # Replace all whitespace (including newlines) with a single space
-    text = re.sub(r'([A-Za-z])\s([A-Za-z])', r'\1\2', text)  # Join fragmented letters
-    text = text.replace("A m o u n t", "Amount").replace("P a t i e n t", "Patient")  # Fix known patterns
-    return text.strip()
+    try:
+        reader = PdfReader(pdf_file)
+        text = ""
+        for page in reader.pages:
+            text += page.extract_text()
+        # Clean up text
+        text = re.sub(r'\s+', ' ', text)  # Replace all whitespace (including newlines) with a single space
+        text = re.sub(r'([A-Za-z])\s([A-Za-z])', r'\1\2', text)  # Join fragmented letters
+        text = text.replace("A m o u n t", "Amount").replace("P a t i e n t", "Patient")  # Fix known patterns
+        return text.strip()
+    except Exception as e:
+        st.error(f"Error extracting text from PDF: {e}")
+        return ""
 
 # Function to extract claims using regex
 def extract_claims(text, pattern):
@@ -53,7 +57,7 @@ def is_service_not_covered(service_desc, non_covered_services):
     return any(nc.lower() in service_desc.lower() for nc in non_covered_services)
 
 # Streamlit setup
-st.set_page_config(page_title="Medical Claim Appeal Generator", page_icon="🩺", layout="wide")
+st.set_page_config(page_title="Medical Claim Appeal Generator", page_icon="\ud83e\udfe0", layout="wide")
 
 col1, col2 = st.columns([1, 6])
 with col1:
@@ -78,22 +82,32 @@ if eob_file and medical_file and denial_file:
     medical_text = extract_text_from_pdf(medical_file)
     denial_text = extract_text_from_pdf(denial_file)
 
-    st.subheader("File Previews")
-    st.write("**EOB Preview:**")
-    st.text(eob_text[:1000])  # Show first 1000 characters
-    st.write("**Medical Records Preview:**")
-    st.text(medical_text[:1000])
-    st.write("**Denial Letter Preview:**")
-    st.text(denial_text[:1000])
+    st.subheader("Debugging Extracted Text")
+    st.text_area("EOB Text", eob_text or "No EOB text extracted", height=200)
+    st.text_area("Medical Text", medical_text or "No Medical text extracted", height=200)
+    st.text_area("Denial Text", denial_text or "No Denial text extracted", height=200)
+
+    # Validate extracted text
+    if not eob_text:
+        st.error("EOB extraction failed. Please check the file.")
+    if not denial_text:
+        st.error("Denial letter extraction failed. Please check the file.")
+
+    # Define claim patterns
+    claim_pattern = r"Claim Number:\s*(\d+).*?Service:\s*(.*?)\s*Amount Billed:\s*\$([\d,.]+).*?Claim Date:\s*(\d{4}-\d{2}-\d{2})"
+    denial_pattern = r"Claim Number:\s*(\d+).*?Reason for Denial:\s*(.*?)(?=Claim Number:|\Z)"
 
     # Extract claims
-    claim_pattern = r"Claim Number:\s*(\d+).*?Service Description:\s*(.*?)\nAmount Billed:\s*\$([\d,.]+).*?Claim Date:\s*(\d{4}-\d{2}-\d{2})"
-    denial_pattern = r"Claim Number:\s*(\d+).*?Reason for Denial:\s*(.*?)(?=\nClaim Number:|\n$)"
-
     eob_claims = extract_claims(eob_text, claim_pattern)
-    st.write(eob_claims)
     denial_claims = extract_claims(denial_text, denial_pattern)
-    st.write(denial_claims)
+
+    if not eob_claims:
+        st.error("No claims found in EOB. Check the file or pattern.")
+    if not denial_claims:
+        st.warning("No denial claims found. Ensure the file contains valid denial details.")
+
+    st.write("Extracted EOB Claims:", eob_claims)
+    st.write("Extracted Denial Claims:", denial_claims)
 
     # Define non-covered services
     non_covered_services = ["cosmetic surgery", "experimental treatment", "unnecessary procedure"]
@@ -103,66 +117,68 @@ if eob_file and medical_file and denial_file:
     appeal_letters = {}
 
     for claim_number, service_desc, billed_amt, claim_date in eob_claims:
-        denial_match = next((d for d in denial_claims if d[0] == claim_number), None)
-        denial_reason = denial_match[1] if denial_match else "No Denial Reason Found"
+        try:
+            denial_match = next((d for d in denial_claims if d[0] == claim_number), None)
+            denial_reason = denial_match[1] if denial_match else "No Denial Reason Found"
 
-        if is_claim_late(claim_date, datetime.now().strftime("%Y-%m-%d")):
-            results.append({
-                "Customer Name": extract_patient_info(medical_text),
-                "Claim Number": claim_number,
-                "Appeal Letter Sent": "No",
-                "Reason": "Claim Submitted Late"
-            })
-        elif is_service_not_covered(service_desc, non_covered_services):
-            results.append({
-                "Customer Name": extract_patient_info(medical_text),
-                "Claim Number": claim_number,
-                "Appeal Letter Sent": "No",
-                "Reason": "Service Not Covered"
-            })
-        else:
-            appeal_prompt = f"""
-            Generate a professional appeal letter based on these inputs:
-            1. Explanation of Benefits (EOB):
-            {eob_text}
+            if is_claim_late(claim_date, datetime.now().strftime("%Y-%m-%d")):
+                results.append({
+                    "Customer Name": extract_patient_info(medical_text),
+                    "Claim Number": claim_number,
+                    "Appeal Letter Sent": "No",
+                    "Reason": "Claim Submitted Late"
+                })
+            elif is_service_not_covered(service_desc, non_covered_services):
+                results.append({
+                    "Customer Name": extract_patient_info(medical_text),
+                    "Claim Number": claim_number,
+                    "Appeal Letter Sent": "No",
+                    "Reason": "Service Not Covered"
+                })
+            else:
+                appeal_prompt = f"""
+                Generate a professional appeal letter based on these inputs:
+                1. Explanation of Benefits (EOB):
+                {eob_text}
 
-            2. Medical Records:
-            {medical_text}
+                2. Medical Records:
+                {medical_text}
 
-            3. Denial Letter:
-            {denial_text}
+                3. Denial Letter:
+                {denial_text}
 
-            The appeal letter should:
-            - Use a polite and professional tone.
-            - Clearly state the reason for the appeal.
-            - Explain the medical necessity of the procedures.
-            - Suggest why the denial reason should be reconsidered.
+                The appeal letter should:
+                - Use a polite and professional tone.
+                - Clearly state the reason for the appeal.
+                - Explain the medical necessity of the procedures.
+                - Suggest why the denial reason should be reconsidered.
 
-            Please use the following patient details at the beginning of the letter:
-            Patient Name: {extract_patient_info(medical_text)}
+                Please use the following patient details at the beginning of the letter:
+                Patient Name: {extract_patient_info(medical_text)}
 
-            Start the letter with the patient's full name and address, followed by the current date ({current_date}).
-            """
-            
+                Start the letter with the patient's full name and address, followed by the current date ({current_date}).
+                """
 
-            agent = initialize_agent(api_key)
-            if agent:
-                try:
-                    appeal_letter = agent.run(appeal_prompt)
-                    appeal_letters[claim_number] = appeal_letter
-                    results.append({
-                        "Customer Name": extract_patient_info(medical_text),
-                        "Claim Number": claim_number,
-                        "Appeal Letter Sent": "Yes",
-                        "Reason": "",
-                    })
-                except Exception as e:
-                    results.append({
-                        "Customer Name": extract_patient_info(medical_text),
-                        "Claim Number": claim_number,
-                        "Appeal Letter Sent": "No",
-                        "Reason": f"Error: {str(e)}",
-                    })
+                agent = initialize_agent(api_key)
+                if agent:
+                    try:
+                        appeal_letter = agent.run(appeal_prompt)
+                        appeal_letters[claim_number] = appeal_letter
+                        results.append({
+                            "Customer Name": extract_patient_info(medical_text),
+                            "Claim Number": claim_number,
+                            "Appeal Letter Sent": "Yes",
+                            "Reason": "",
+                        })
+                    except Exception as e:
+                        results.append({
+                            "Customer Name": extract_patient_info(medical_text),
+                            "Claim Number": claim_number,
+                            "Appeal Letter Sent": "No",
+                            "Reason": f"Error: {str(e)}",
+                        })
+        except Exception as e:
+            st.error(f"Error processing claim {claim_number}: {e}")
 
     # Results table
     results_df = pd.DataFrame(results)
