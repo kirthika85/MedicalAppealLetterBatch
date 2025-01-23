@@ -230,7 +230,7 @@ if eob_file and medical_file and denial_file:
         st.dataframe(results_df)
     
         csv = results_df.to_csv(index=False)
-            st.download_button(
+        st.download_button(
             label="Download Results as CSV",
             data=csv,
             file_name="claim_results.csv",
