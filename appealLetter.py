@@ -56,6 +56,15 @@ def is_claim_late(claim_date, denial_date, max_days=90):
 def is_service_not_covered(service_desc, non_covered_services):
     return any(nc.lower() in service_desc.lower() for nc in non_covered_services)
 
+def preprocess_eob_text(text):
+    # Add spaces where missing
+    text = re.sub(r"([a-z])([A-Z])", r"\1 \2", text)  # Add space between lowercase and uppercase letters
+    text = re.sub(r"(\d)([A-Z])", r"\1 \2", text)  # Add space between digits and letters
+    text = re.sub(r"([A-Za-z])(\d)", r"\1 \2", text)  # Add space between letters and digits
+    text = re.sub(r"([A-Za-z]):", r"\1: ", text)  # Add space after colons
+    return text.strip()
+
+
 # Streamlit setup
 st.set_page_config(page_title="Medical Claim Appeal Generator", page_icon="🩺", layout="wide")
 #st.image("Mool.png", width=100)
@@ -101,6 +110,8 @@ if eob_file and medical_file and denial_file:
     # Define claim patterns
     claim_pattern = r"Claim Number:\s*(\d+).*?Service:\s*(.*?)\s*Amount Billed:\s*\$([\d,.]+).*?Claim Date:\s*(\d{4}-\d{2}-\d{2})"
     denial_pattern = r"Claim Number:\s*(\d+).*?Reason for Denial:\s*(.*?)(?=Claim Number:|\Z)"
+
+    eob_text = preprocess_eob_text(eob_text)
 
     # Extract claims
     eob_claims = extract_claims(eob_text, claim_pattern)
