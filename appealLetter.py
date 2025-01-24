@@ -45,11 +45,11 @@ def initialize_agent(api_key):
         return None
 
 # Function to check "Claim Submitted Late"
-def is_claim_late(claim_date, denial_date, max_days=90):
+def is_claim_late(claim_date, denial_date, max_days=30):
     try:
-        claim_date_obj = datetime.strptime(claim_date, "%Y-%m-%d")
-        denial_date_obj = datetime.strptime(denial_date, "%Y-%m-%d")
-        return (denial_date_obj - claim_date_obj).days > max_days
+          claim_date = datetime.strptime(claim_date, "%m/%d/%Y")
+          current_date = datetime.strptime(current_date, "%m/%d/%Y")
+          return (current_date - claim_date).days > max_days
     except ValueError:
         return False
 
@@ -67,6 +67,16 @@ def preprocess_eob_text(text):
     text = re.sub(r"([a-z]{3,})([A-Z])", r"\1 \2", text)  # Split CamelCase
     return text.strip()
 
+def extract_patient_info(medical_text):
+    # Extract key details
+    name = re.search(r"Patient Name:\s*(.*?)(?=\s*Date of Birth:|$)", medical_text)
+    dob = re.search(r"Date of Birth:\s*(\d{4}-\d{2}-\d{2})", medical_text)
+    policy_number = re.search(r"Policy Number:\s*(\d+)", medical_text)
+    return {
+        "Customer Name": name.group(1).strip() if name else "Unknown",
+        "DOB": dob.group(1).strip() if dob else "Unknown",
+        "Policy Number": policy_number.group(1).strip() if policy_number else "Unknown",
+    }
 
 # Streamlit setup
 st.set_page_config(page_title="Medical Claim Appeal Generator", page_icon="🩺", layout="wide")
@@ -137,6 +147,7 @@ if eob_file and medical_file and denial_file:
     # Process claims
     results = []
     appeal_letters = {}
+    patient_info = extract_patient_info(medical_text)
 
     for claim_number, service_desc, billed_amt, claim_date in eob_claims:
         try:
@@ -144,18 +155,24 @@ if eob_file and medical_file and denial_file:
             denial_reason = denial_match[1] if denial_match else "No Denial Reason Found"
 
             if is_claim_late(claim_date, datetime.now().strftime("%Y-%m-%d")):
-                results.append({
-                    "Customer Name": extract_patient_info(medical_text),
-                    "Claim Number": claim_number,
-                    "Appeal Letter Sent": "No",
-                    "Reason": "Claim Submitted Late"
+                    results.append({
+                        "Customer Name": patient_info["Customer Name"],
+                        "DOB": patient_info["DOB"],
+                        "Policy Number": patient_info["Policy Number"],
+                        "Claim Number": claim_number,
+                        "Claim Date": claim_date,
+                        "Appeal Letter Sent": "No",
+                        "Reason": "Claim Submitted Late",
                 })
             elif is_service_not_covered(service_desc, non_covered_services):
                 results.append({
-                    "Customer Name": extract_patient_info(medical_text),
+                    "Customer Name": patient_info["Customer Name"],
+                    "DOB": patient_info["DOB"],
+                    "Policy Number": patient_info["Policy Number"],
                     "Claim Number": claim_number,
+                    "Claim Date": claim_date,
                     "Appeal Letter Sent": "No",
-                    "Reason": "Service Not Covered"
+                    "Reason": "Service Not Covered",
                 })
             else:
                 appeal_prompt = f"""
@@ -187,15 +204,21 @@ if eob_file and medical_file and denial_file:
                         appeal_letter = agent.run(appeal_prompt)
                         appeal_letters[claim_number] = appeal_letter
                         results.append({
-                            "Customer Name": extract_patient_info(medical_text),
+                            "Customer Name": patient_info["Customer Name"],
+                            "DOB": patient_info["DOB"],
+                            "Policy Number": patient_info["Policy Number"],
                             "Claim Number": claim_number,
+                            "Claim Date": claim_date,
                             "Appeal Letter Sent": "Yes",
                             "Reason": "",
                         })
                     except Exception as e:
                         results.append({
-                            "Customer Name": extract_patient_info(medical_text),
+                            "Customer Name": patient_info["Customer Name"],
+                            "DOB": patient_info["DOB"],
+                            "Policy Number": patient_info["Policy Number"],
                             "Claim Number": claim_number,
+                            "Claim Date": claim_date,
                             "Appeal Letter Sent": "No",
                             "Reason": f"Error: {str(e)}",
                         })
@@ -226,9 +249,9 @@ if eob_file and medical_file and denial_file:
     results_df = pd.DataFrame(results)
     
     with tab2:
-        st.header("Claim Results")
-        st.dataframe(results_df)
-    
+        st.header("Claim Appeal Status")
+        st.dataframe(results_df[["Customer Name", "DOB", "Policy Number", "Claim Number", "Claim Date", "Appeal Letter Sent", "Reason"]])
+  
         csv = results_df.to_csv(index=False)
         st.download_button(
             label="Download Results as CSV",
