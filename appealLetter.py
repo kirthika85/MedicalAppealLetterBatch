@@ -238,9 +238,8 @@ if eob_file and medical_file and denial_file:
                 st.subheader(f"Claim {claim_number}")
                 appeal_file = BytesIO()
                 appeal_file.write(appeal_letter.encode("utf-8"))
-                appeal_file.seek(0)
                 st.download_button(
-                    label=f"Download Appeal Letter",
+                    label=f"Download Appeal Letter for Claim {claim_number}",
                     data=appeal_file,
                     file_name=f"AppealLetter_{claim_number}.txt",
                     mime="text/plain",
