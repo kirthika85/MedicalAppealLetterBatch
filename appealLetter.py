@@ -231,12 +231,11 @@ if eob_file and medical_file and denial_file:
 
     with tab1:
         st.subheader("Appeal Letters")
-        col1, col2 = st.columns(2)
         
-        for i, (claim_number, appeal_letter) in enumerate(appeal_letters.items()):
-            with col1 if i % 2 == 0 else col2:
+        for claim_number, appeal_letter in appeal_letters.items():
                 appeal_file = BytesIO()
                 appeal_file.write(appeal_letter.encode("utf-8"))
+                appeal_file.seek(0)
                 st.download_button(
                     label=f"Download Appeal Letter for Claim {claim_number}",
                     data=appeal_file,
