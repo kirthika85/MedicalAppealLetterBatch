@@ -184,51 +184,45 @@ if eob_file and medical_file and denial_file:
                 })
             else:
                 appeal_prompt = f"""
-                Generate a professional appeal letter based on these inputs for Claim Number: {claim_number}
+                Generate a professional appeal letter specifically for Claim Number {claim_number}:
                 
-                1. Claim Details:
-                   Claim Number: {claim_number}
-                   Claim Date: {claim_date}
-                   Service Description: {service_desc}
-                   Amount Billed: ${billed_amt}
+                Claim-Specific Details:
+                - Claim Number: {claim_number}
+                - Claim Date: {claim_date}
+                - Service Description: {service_desc}
+                - Amount Billed: ${billed_amt}
+                - Denial Reason: {denial_reason}
                 
-                2. Denial Reason:
-                   {denial_reason}
+                Context from Documents:
+                1. Explanation of Benefits (EOB) Relevant to This Claim:
+                {eob_text}
                 
-                3. Relevant Medical Records:
-                   [Extract relevant information from medical_text for this specific claim]
+                2. Medical Records Relevant to This Claim:
+                {medical_text}
                 
-                4. Insurance Company Details:
-                   [Extract insurance company name and address from denial_text]
+                3. Denial Letter Details for This Claim:
+                {denial_text}
                 
-                The appeal letter should:
-                - Use a polite and professional tone.
-                - Clearly state the reason for appealing this specific claim (Claim Number: {claim_number}).
-                - Explain the medical necessity of the procedure/service for this claim.
-                - Address the specific denial reason provided for this claim.
-                - Suggest why the denial reason should be reconsidered.
+                Specific Instructions:
+                - Focus ONLY on the details of Claim Number {claim_number}
+                - Explain why this specific claim should be reconsidered
+                - Extract patient address from medical records for this claim
+                - Use patient details:
+                  * Name: {patient_info['Customer Name']}
+                  * Date of Birth: {patient_info['DOB']}
+                  * Policy Number: {patient_info['Policy Number']}
                 
-                Please use the following patient details at the beginning of the letter:
-                Patient Name: {patient_info["Customer Name"]}
-                Patient Address: [Extract from medical_text]
-                Date of Birth: {patient_info["DOB"]}
-                Policy Number: {patient_info["Policy Number"]}
+                Letter Format:
+                - Start with patient's full name and extracted address
+                - Include current date: {current_date}
+                - Address to Claim Appeals Department
+                - Clearly state the specific claim being appealed
+                - Explain medical necessity for this particular claim
+                - Provide a compelling argument for claim reconsideration
                 
-                Start the letter with the patient's full name and address, followed by the current date ({current_date}).
+                End the letter with patient's signature.
                 
-                Address the letter to:
-                Claim Appeals Department
-                [Insurance Company Name]
-                [Insurance Company Address]
-                [City, State, ZIP]
-                
-                End the letter with:
-                Sincerely,
-                
-                {patient_info["Customer Name"]}
-                Patient, Policy Number: {patient_info["Policy Number"]}
-                
-                Important: Replace all placeholders in square brackets [] with the actual extracted information. Do not include any placeholders in the final letter.
+                Important: Generate an appeal letter ONLY for Claim Number {claim_number}, using only the information specific to this claim.
                 """
 
                 agent = initialize_agent(api_key)
