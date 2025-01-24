@@ -49,8 +49,8 @@ def initialize_agent(api_key):
 def is_claim_late(claim_date, denial_date, max_days=30):
     try:
           claim_date = datetime.strptime(claim_date, "%m/%d/%Y")
-          global_current_date = datetime.strptime(datetime.now().strftime("%m/%d/%Y"), "%m/%d/%Y")
-          return (global_current_date - claim_date).days > max_days
+          current_date = datetime.strptime(current_date, "%m/%d/%Y")
+          return (current_date - claim_date).days > max_days
     except ValueError:
         return False
 
