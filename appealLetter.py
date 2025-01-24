@@ -110,9 +110,11 @@ if eob_file and medical_file and denial_file:
     medical_text = extract_text_from_pdf(medical_file)
     denial_text = extract_text_from_pdf(denial_file)
 
-    st.subheader("Debugging Extracted Text")
+    st.subheader("EOB Preview:")
     st.text_area("EOB Text", eob_text or "No EOB text extracted", height=200)
+    st.subheader("Medical Records Preview:")
     st.text_area("Medical Text", medical_text or "No Medical text extracted", height=200)
+    st.subheader("Denial Letter Preview:")
     st.text_area("Denial Text", denial_text or "No Denial text extracted", height=200)
 
     # Validate extracted text
@@ -139,8 +141,8 @@ if eob_file and medical_file and denial_file:
     if not denial_claims:
         st.warning("No denial claims found. Ensure the file contains valid denial details.")
 
-    st.write("Extracted EOB Claims:", eob_claims)
-    st.write("Extracted Denial Claims:", denial_claims)
+    #st.write("Extracted EOB Claims:", eob_claims)
+    #st.write("Extracted Denial Claims:", denial_claims)
 
     # Define non-covered services
     non_covered_services = ["cosmetic surgery", "experimental treatment", "unnecessary procedure"]
