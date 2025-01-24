@@ -178,22 +178,40 @@ if eob_file and medical_file and denial_file:
             else:
                 appeal_prompt = f"""
                 Generate a professional appeal letter for the following denied claim:
-            
-                - Patient Name: {patient_info['Customer Name']}
-                - Date of Birth: {patient_info['DOB']}
-                - Policy Number: {patient_info['Policy Number']}
+
+                Patient Details:
+                - Patient Name: {patient_name}
+                - Date of Birth: {dob}
+                - Policy Number: {policy_number}
+                - Address: {address}
+
+                Claim Information:
                 - Claim Number: {claim_number}
                 - Claim Date: {claim_date}
                 - Service: {service_desc}
                 - Amount Billed: ${billed_amt}
                 - Denial Reason: {denial_reason}
-            
-                The letter should:
-                - Use a polite and professional tone.
-                - Clearly state the reason for the appeal.
-                - Explain the medical necessity of the service.
-                - Refute the denial reason with specific points.
-                - Start with the patient's full name and address followed by the current date ({current_date}).
+
+                Explanation of Benefits (EOB):
+                {eob_text}
+
+                Medical Records:
+                {medical_text}
+
+                Denial Letter:
+                {denial_text}
+
+                The appeal letter should:
+                1. Start with the patient's full name and address followed by the current date ({current_date}).
+                2. Use a polite and professional tone throughout.
+                3. Clearly state the reason for the appeal, referencing the specific claim number and denial reason.
+                4. Explain the medical necessity of the service, drawing from the medical records provided.
+                5. Refute the denial reason with specific points, using information from the EOB, medical records, and any relevant policy information.
+                6. Suggest why the denial reason should be reconsidered, emphasizing the impact on the patient's health and well-being.
+                7. Include any relevant ICD-10 codes or other medical terminology that supports the necessity of the service.
+                8. Conclude with a clear request for the claim to be reviewed and approved.
+
+                Please ensure that the letter is concise yet comprehensive, addressing all key points while maintaining a professional and persuasive tone. The goal is to present a compelling case for why the claim should be approved based on medical necessity and the patient's specific circumstances.
                 """
 
                 agent = initialize_agent(api_key)
