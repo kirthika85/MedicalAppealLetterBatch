@@ -268,11 +268,11 @@ if eob_file and medical_file and denial_file:
                 with col2:
                     if st.button(f"Read Appeal Letter for Claim {claim_number}"):
                         with st.spinner("Generating audio..."):
-                        audio_bytes = io.BytesIO()
-                        tts = gTTS(appeal_letter, lang="en")
-                        tts.write_to_fp(audio_bytes)
-                        audio_bytes.seek(0)
-                        st.audio(audio_bytes, format="audio/mp3", start_time=0)
+                            audio_bytes = io.BytesIO()
+                            tts = gTTS(appeal_letter, lang="en")
+                            tts.write_to_fp(audio_bytes)
+                            audio_bytes.seek(0)
+                            st.audio(audio_bytes, format="audio/mp3", start_time=0)
                        
     
     results_df = pd.DataFrame(results)
