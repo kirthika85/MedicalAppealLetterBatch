@@ -198,9 +198,23 @@ if eob_file and medical_file and denial_file:
                 - Suggest why the denial reason should be reconsidered.
 
                 Please use the following patient details at the beginning of the letter:
-                Patient Name: {extract_patient_info(medical_text)}
+                Patient Name: {extract_patient_info(medical_text)['Customer Name']}
+                Patient Address: [Extract from medical_text]
+                Date of Birth: {extract_patient_info(medical_text)['DOB']}
+                Policy Number: {extract_patient_info(medical_text)['Policy Number']}
 
                 Start the letter with the patient's full name and address, followed by the current date ({current_date}).
+
+                Address the letter to:
+                Claim Appeals Department
+                [Insurance Company Name]
+                [Insurance Company Address]
+                [City, State, ZIP]
+
+                End the letter with:
+                Sincerely,
+
+                [Patient Name]
                 """
 
                 agent = initialize_agent(api_key)
