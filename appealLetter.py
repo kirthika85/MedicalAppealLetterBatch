@@ -177,26 +177,23 @@ if eob_file and medical_file and denial_file:
                 })
             else:
                 appeal_prompt = f"""
-                Generate a professional appeal letter based on these inputs:
-                1. Explanation of Benefits (EOB):
-                {eob_text}
-
-                2. Medical Records:
-                {medical_text}
-
-                3. Denial Letter:
-                {denial_text}
-
-                The appeal letter should:
+                Generate a professional appeal letter for the following denied claim:
+            
+                - Patient Name: {patient_info['Customer Name']}
+                - Date of Birth: {patient_info['DOB']}
+                - Policy Number: {patient_info['Policy Number']}
+                - Claim Number: {claim_number}
+                - Claim Date: {claim_date}
+                - Service: {service_desc}
+                - Amount Billed: ${billed_amt}
+                - Denial Reason: {denial_reason}
+            
+                The letter should:
                 - Use a polite and professional tone.
                 - Clearly state the reason for the appeal.
-                - Explain the medical necessity of the procedures.
-                - Suggest why the denial reason should be reconsidered.
-
-                Please use the following patient details at the beginning of the letter:
-                Patient Name: {extract_patient_info(medical_text)}
-
-                Start the letter with the patient's full name and address, followed by the current date ({current_date}).
+                - Explain the medical necessity of the service.
+                - Refute the denial reason with specific points.
+                - Start with the patient's full name and address followed by the current date ({current_date}).
                 """
 
                 agent = initialize_agent(api_key)
