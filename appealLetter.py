@@ -37,6 +37,7 @@ def extract_patient_info(medical_text):
 
 # Initialize AI agent
 def initialize_agent(api_key):
+    st.write("Initializing Mool AI agent...")
     try:
         llm = ChatOpenAI(temperature=0.7, model="gpt-4", openai_api_key=api_key)
         memory = ConversationBufferMemory()
