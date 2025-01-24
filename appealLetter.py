@@ -166,7 +166,7 @@ if eob_file and medical_file and denial_file:
                         "Policy Number": patient_info["Policy Number"],
                         "Claim Number": claim_number,
                         "Claim Date": claim_date,
-                        "Appeal Letter Sent": "No",
+                        "Appeal Letter Status": "No",
                         "Reason": "Claim Submitted Late",
                 })
             elif is_service_not_covered(service_desc, non_covered_services):
@@ -176,7 +176,7 @@ if eob_file and medical_file and denial_file:
                     "Policy Number": patient_info["Policy Number"],
                     "Claim Number": claim_number,
                     "Claim Date": claim_date,
-                    "Appeal Letter Sent": "No",
+                    "Appeal Letter Status": "No",
                     "Reason": "Service Not Covered",
                 })
             else:
@@ -214,7 +214,7 @@ if eob_file and medical_file and denial_file:
                             "Policy Number": patient_info["Policy Number"],
                             "Claim Number": claim_number,
                             "Claim Date": claim_date,
-                            "Appeal Letter Sent": "Yes",
+                            "Appeal Letter Status": "Yes",
                             "Reason": "",
                         })
                     except Exception as e:
@@ -224,7 +224,7 @@ if eob_file and medical_file and denial_file:
                             "Policy Number": patient_info["Policy Number"],
                             "Claim Number": claim_number,
                             "Claim Date": claim_date,
-                            "Appeal Letter Sent": "No",
+                            "Appeal Letter Status": "No",
                             "Reason": f"Error: {str(e)}",
                         })
         except Exception as e:
@@ -252,7 +252,7 @@ if eob_file and medical_file and denial_file:
     
     with tab2:
         st.header("Claim Appeal Status")
-        st.dataframe(results_df[["Customer Name", "DOB", "Policy Number", "Claim Number", "Claim Date", "Appeal Letter Sent", "Reason"]])
+        st.dataframe(results_df[["Customer Name", "DOB", "Policy Number", "Claim Number", "Claim Date", "Appeal Letter Status", "Reason"]])
   
         csv = results_df.to_csv(index=False)
         st.download_button(
