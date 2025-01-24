@@ -149,7 +149,7 @@ if eob_file and medical_file and denial_file:
     appeal_letters = {}
     patient_info = extract_patient_info(medical_text)
 
-    for claim_number, service_desc, billed_amt, claim_date in eob_claims:
+    for claim_number, claim_date, service_desc, billed_amt in eob_claims:
         try:
             denial_match = next((d for d in denial_claims if d[0] == claim_number), None)
             denial_reason = denial_match[1] if denial_match else "No Denial Reason Found"
