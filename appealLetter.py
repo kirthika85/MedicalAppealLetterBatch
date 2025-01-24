@@ -37,7 +37,6 @@ def extract_patient_info(medical_text):
 
 # Initialize AI agent
 def initialize_agent(api_key):
-    st.write("Initializing Mool AI agent...")
     try:
         llm = ChatOpenAI(temperature=0.7, model="gpt-4", openai_api_key=api_key)
         memory = ConversationBufferMemory()
@@ -124,6 +123,8 @@ if eob_file and medical_file and denial_file:
     if not denial_text:
         st.error("Denial letter extraction failed. Please check the file.")
 
+    st.write("Initializing Mool AI agent...")
+    
     eob_text = preprocess_eob_text(eob_text)
     denial_text = preprocess_eob_text(denial_text)
     
