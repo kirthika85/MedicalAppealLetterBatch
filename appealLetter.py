@@ -184,39 +184,46 @@ if eob_file and medical_file and denial_file:
                 })
             else:
                 appeal_prompt = f"""
-                Generate a professional appeal letter based on these inputs:
-                1. Explanation of Benefits (EOB):
-                {eob_text}
-
-                2. Medical Records:
-                {medical_text}
-
-                3. Denial Letter:
-                {denial_text}
-
+                Generate a professional appeal letter based on these inputs for Claim Number: {claim_number}
+    
+                1. Claim Details:
+                   Claim Number: {claim_number}
+                   Claim Date: {claim_date}
+                   Service Description: {service_desc}
+                   Amount Billed: ${billed_amt}
+    
+                2. Denial Reason:
+                   {denial_reason}
+    
+                3. Relevant Medical Records:
+                [Extract relevant information from medical_text for this specific claim]
+    
+                4. Insurance Company Details:
+                 [Extract insurance company name and address from denial_text]
+    
                 The appeal letter should:
                 - Use a polite and professional tone.
-                - Clearly state the reason for the appeal.
-                - Explain the medical necessity of the procedures.
+                - Clearly state the reason for appealing this specific claim (Claim Number: {claim_number}).
+                - Explain the medical necessity of the procedure/service for this claim.
+                - Address the specific denial reason provided for this claim.
                 - Suggest why the denial reason should be reconsidered.
-
+    
                 Please use the following patient details at the beginning of the letter:
-                Patient Name: {extract_patient_info(medical_text)['Customer Name']}
+                Patient Name: {patient_info["Customer Name"]}
                 Patient Address: [Extract from medical_text]
-                Date of Birth: {extract_patient_info(medical_text)['DOB']}
-                Policy Number: {extract_patient_info(medical_text)['Policy Number']}
-
+                Date of Birth: {patient_info["DOB"]}
+                Policy Number: {patient_info["Policy Number"]}
+    
                 Start the letter with the patient's full name and address, followed by the current date ({current_date}).
-
+    
                 Address the letter to:
                 Claim Appeals Department
-                [Insurance Company Name]
-                [Insurance Company Address]
-                [City, State, ZIP]
-
+                [Insurance Company Name from denial_text]
+                [Insurance Company Address from denial_text]
+    
                 End the letter with:
                 Sincerely,
-
+    
                 [Patient Name]
                 """
 
