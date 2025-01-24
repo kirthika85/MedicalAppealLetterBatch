@@ -8,6 +8,7 @@ from langchain.chat_models import ChatOpenAI
 from langchain.chains import ConversationChain
 from langchain.memory import ConversationBufferMemory
 
+current_date = datetime.now().strftime("%A, %B %d, %Y")
 # Function to extract text from PDFs
 def extract_text_from_pdf(pdf_file):
     try:
@@ -93,7 +94,7 @@ with col2:
     )
 
 st.write("Generate medical claim appeal letters for each claim in the provided documents.")
-current_date = datetime.now().strftime("%A, %B %d, %Y")
+
 
 # Sidebar for OpenAI API Key input
 api_key = st.sidebar.text_input("Enter your OpenAI API Key", type="password")
