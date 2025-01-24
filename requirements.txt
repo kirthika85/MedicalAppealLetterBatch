@@ -4,3 +4,4 @@ langchain
 openai
 pandas
 langchain_community
+gTTS
