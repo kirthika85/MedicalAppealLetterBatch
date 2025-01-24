@@ -235,7 +235,6 @@ if eob_file and medical_file and denial_file:
         
         for i, (claim_number, appeal_letter) in enumerate(appeal_letters.items()):
             with col1 if i % 2 == 0 else col2:
-                st.subheader(f"Claim {claim_number}")
                 appeal_file = BytesIO()
                 appeal_file.write(appeal_letter.encode("utf-8"))
                 st.download_button(
