@@ -257,20 +257,20 @@ if eob_file and medical_file and denial_file:
                 appeal_file.write(appeal_letter.encode("utf-8"))
                 appeal_file.seek(0)
 
-            col1, col2 = st.columns(2)
-            with col1:
-                st.download_button(
-                    label=f"Download Appeal Letter for Claim {claim_number}",
-                    data=appeal_file,
-                    file_name=f"AppealLetter_{claim_number}.txt",
-                    mime="text/plain",
-                )
-            with col2:
-                if st.button(f"Read Appeal Letter for Claim {claim_number}"):
-                    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_audio_file:
-                        tts = gTTS(appeal_letter, lang="en")
-                        tts.save(temp_audio_file.name)
-                        st.audio(temp_audio_file.name, format="audio/mp3")
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.download_button(
+                        label=f"Download Appeal Letter for Claim {claim_number}",
+                        data=appeal_file,
+                        file_name=f"AppealLetter_{claim_number}.txt",
+                        mime="text/plain",
+                    )
+                with col2:
+                    if st.button(f"Read Appeal Letter for Claim {claim_number}"):
+                        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_audio_file:
+                            tts = gTTS(appeal_letter, lang="en")
+                            tts.save(temp_audio_file.name)
+                            st.audio(temp_audio_file.name, format="audio/mp3")
                         
     
     results_df = pd.DataFrame(results)
