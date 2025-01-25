@@ -101,13 +101,15 @@ st.write("Generate medical claim appeal letters for each claim in the provided d
 
 # Sidebar for OpenAI API Key input
 #api_key = st.sidebar.text_input("Enter your OpenAI API Key", type="password")
+
 st.write("Mool AI agent Authentication Started")
 api_key = st.secrets["OPENAI_API_KEY"]
-#api_key = os.environ.get("OPENAI_API_KEY")
-#if not api_key:
-#    st.error("API_KEY not found in environment variables.")
-#    st.stop()
+api_key = os.environ.get("OPENAI_API_KEY")
+if not api_key:
+    st.error("API_KEY not found in environment variables.")
+    st.stop()
 st.write("Mool AI agent Authentication Successful")
+
 # File upload
 st.header("Upload Documents")
 eob_file = st.file_uploader("Upload Explanation of Benefits (EOB)", type=["pdf"])
