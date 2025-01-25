@@ -11,6 +11,7 @@ from gtts import gTTS
 import tempfile
 import io
 import os
+import time
 
 current_date = datetime.now().strftime("%A, %B %d, %Y")
 # Function to extract text from PDFs
@@ -108,6 +109,7 @@ with st.spinner("🔄 Mool AI agent Authentication In progress..."):
     if not api_key:
         st.error("❌ API_KEY not found in environment variables.")
         st.stop()
+        time.sleep(1)
 st.success("✅ Mool AI agent Authentication Successful")
 
 # File upload
