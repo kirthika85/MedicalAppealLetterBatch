@@ -10,6 +10,7 @@ from langchain.memory import ConversationBufferMemory
 from gtts import gTTS
 import tempfile
 import io
+import os
 
 current_date = datetime.now().strftime("%A, %B %d, %Y")
 # Function to extract text from PDFs
