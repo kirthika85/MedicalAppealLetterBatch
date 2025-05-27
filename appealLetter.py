@@ -51,7 +51,7 @@ def initialize_agent(api_key):
         return None
 
 # Function to check "Claim Submitted Late"
-def is_claim_late(claim_date, denial_date, max_days=90):
+def is_claim_late(claim_date, denial_date, max_days=200):
     try:
           claim_date = datetime.strptime(claim_date, "%m/%d/%Y")
           global_current_date = datetime.strptime(datetime.now().strftime("%m/%d/%Y"), "%m/%d/%Y")
